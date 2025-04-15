@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
-import { Routes, Route } from 'react-router-dom'
-import { Sun, Moon } from 'lucide-react'
+import { Routes, Route, Link } from 'react-router-dom'
+import { Sun, Moon, BarChart } from 'lucide-react'
 import { motion } from 'framer-motion'
 import Home from './pages/Home'
+import Analytics from './pages/Analytics'
 import NotFound from './pages/NotFound'
 
 function App() {
@@ -34,20 +35,33 @@ function App() {
             </h1>
           </div>
           
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setDarkMode(!darkMode)}
-            className="p-2 rounded-full bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 transition-colors"
-            aria-label="Toggle dark mode"
-          >
-            {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-          </motion.button>
+          <div className="flex items-center gap-4">
+            <nav className="hidden md:flex items-center gap-4">
+              <Link to="/" className="text-surface-600 hover:text-primary dark:text-surface-300 dark:hover:text-primary transition-colors duration-200">
+                Home
+              </Link>
+              <Link to="/analytics" className="text-surface-600 hover:text-primary dark:text-surface-300 dark:hover:text-primary transition-colors duration-200 flex items-center gap-1">
+                <BarChart size={16} />
+                Analytics
+              </Link>
+            </nav>
+            
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setDarkMode(!darkMode)}
+              className="p-2 rounded-full bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 transition-colors"
+              aria-label="Toggle dark mode"
+            >
+              {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+            </motion.button>
+          </div>
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-6">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/analytics" element={<Analytics />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
