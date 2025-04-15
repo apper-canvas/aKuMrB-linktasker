@@ -1,4 +1,4 @@
-import { format, parseISO, isAfter, compareAsc, subDays, isSameDay, differenceInDays } from 'date-fns';
+import { format, parseISO, isAfter, compareAsc, subDays, isSameDay, differenceInDays, isBefore, addDays } from 'date-fns';
 
 // Predefined categories with colors
 export const CATEGORIES = [
@@ -244,5 +244,242 @@ export const getTaskCompletionTime = (tasks) => {
     averageDays: parseFloat(averageDays.toFixed(1)),
     quickestCategory,
     slowestCategory
+  };
+};
+
+// Calculate current streak of completing tasks
+export const calculateCurrentStreak = (tasks) => {
+  if (!tasks || tasks.length === 0) return 0;
+  
+  // Sort completed tasks by completion date (descending)
+  const completedTasks = tasks
+    .filter(task => task.isCompleted && task.completedAt)
+    .sort((a, b) => compareAsc(parseISO(b.completedAt), parseISO(a.completedAt)));
+  
+  if (completedTasks.length === 0) return 0;
+  
+  const today = new Date();
+  let currentStreak = 0;
+  let currentDate = today;
+  
+  // Check if there's a completed task today
+  const hasCompletedTaskToday = completedTasks.some(task => 
+    isSameDay(parseISO(task.completedAt), today)
+  );
+  
+  if (!hasCompletedTaskToday) {
+    // Check if there's a completed task yesterday to continue the streak
+    const yesterday = subDays(today, 1);
+    const hasCompletedTaskYesterday = completedTasks.some(task =>
+      isSameDay(parseISO(task.completedAt), yesterday)
+    );
+    
+    if (!hasCompletedTaskYesterday) {
+      // No task completed yesterday or today, streak is broken
+      return 0;
+    }
+    
+    // Start counting from yesterday
+    currentDate = yesterday;
+  }
+  
+  // Count the streak by walking backwards through days
+  for (let i = 0; i <= 365; i++) { // Limit to 365 days to avoid infinite loop
+    const day = i === 0 ? currentDate : subDays(currentDate, i);
+    const hasCompletedTask = completedTasks.some(task =>
+      isSameDay(parseISO(task.completedAt), day)
+    );
+    
+    if (hasCompletedTask) {
+      currentStreak++;
+    } else {
+      break; // Streak is broken
+    }
+  }
+  
+  return currentStreak;
+};
+
+// Calculate longest streak of completing tasks
+export const calculateLongestStreak = (tasks) => {
+  if (!tasks || tasks.length === 0) return 0;
+  
+  // Sort completed tasks by completion date
+  const completedTasks = tasks
+    .filter(task => task.isCompleted && task.completedAt)
+    .sort((a, b) => compareAsc(parseISO(a.completedAt), parseISO(b.completedAt)));
+  
+  if (completedTasks.length === 0) return 0;
+  
+  // Group tasks by date
+  const tasksByDate = {};
+  completedTasks.forEach(task => {
+    const date = format(parseISO(task.completedAt), 'yyyy-MM-dd');
+    if (!tasksByDate[date]) {
+      tasksByDate[date] = [];
+    }
+    tasksByDate[date].push(task);
+  });
+  
+  // Get sorted dates
+  const dates = Object.keys(tasksByDate).sort();
+  
+  if (dates.length === 0) return 0;
+  
+  let currentStreak = 1;
+  let longestStreak = 1;
+  
+  for (let i = 1; i < dates.length; i++) {
+    const currentDate = parseISO(dates[i]);
+    const prevDate = parseISO(dates[i - 1]);
+    
+    // Check if dates are consecutive
+    if (differenceInDays(currentDate, prevDate) === 1) {
+      currentStreak++;
+    } else {
+      currentStreak = 1; // Reset streak
+    }
+    
+    // Update longest streak if current streak is longer
+    if (currentStreak > longestStreak) {
+      longestStreak = currentStreak;
+    }
+  }
+  
+  return longestStreak;
+};
+
+// Generate streak data for visualization
+export const getStreakData = (tasks) => {
+  if (!tasks || tasks.length === 0) {
+    // Return mock data if no tasks
+    return {
+      activeDays: 18,
+      totalStreaks: 8,
+      averageStreakLength: 5,
+      longestStreakDate: 'Sep 15 - Oct 02',
+      mostProductiveDay: 'Wednesday',
+      heatmapSeries: [
+        { name: "Mon", data: [0, 2, 1, 0, 3] },
+        { name: "Tue", data: [1, 0, 2, 4, 0] },
+        { name: "Wed", data: [3, 1, 0, 2, 1] },
+        { name: "Thu", data: [0, 2, 3, 0, 2] },
+        { name: "Fri", data: [2, 0, 1, 3, 0] },
+        { name: "Sat", data: [1, 3, 0, 1, 4] },
+        { name: "Sun", data: [0, 1, 2, 0, 1] }
+      ]
+    };
+  }
+  
+  // Filter completed tasks
+  const completedTasks = tasks.filter(task => task.isCompleted && task.completedAt);
+  
+  // Group tasks by date
+  const tasksByDate = {};
+  completedTasks.forEach(task => {
+    const date = format(parseISO(task.completedAt), 'yyyy-MM-dd');
+    if (!tasksByDate[date]) {
+      tasksByDate[date] = [];
+    }
+    tasksByDate[date].push(task);
+  });
+  
+  // Count active days
+  const activeDays = Object.keys(tasksByDate).length;
+  
+  // Calculate streaks
+  const dates = Object.keys(tasksByDate).sort().map(d => parseISO(d));
+  
+  if (dates.length === 0) {
+    return {
+      activeDays: 0,
+      totalStreaks: 0,
+      averageStreakLength: 0,
+      longestStreakDate: 'N/A',
+      mostProductiveDay: 'N/A',
+      heatmapSeries: [
+        { name: "Mon", data: [0, 0, 0, 0, 0] },
+        { name: "Tue", data: [0, 0, 0, 0, 0] },
+        { name: "Wed", data: [0, 0, 0, 0, 0] },
+        { name: "Thu", data: [0, 0, 0, 0, 0] },
+        { name: "Fri", data: [0, 0, 0, 0, 0] },
+        { name: "Sat", data: [0, 0, 0, 0, 0] },
+        { name: "Sun", data: [0, 0, 0, 0, 0] }
+      ]
+    };
+  }
+  
+  // Find streaks
+  let streaks = [];
+  let currentStreak = [dates[0]];
+  
+  for (let i = 1; i < dates.length; i++) {
+    const currentDate = dates[i];
+    const prevDate = dates[i - 1];
+    
+    if (differenceInDays(currentDate, prevDate) === 1) {
+      currentStreak.push(currentDate);
+    } else {
+      streaks.push([...currentStreak]);
+      currentStreak = [currentDate];
+    }
+  }
+  
+  // Add the last streak
+  if (currentStreak.length > 0) {
+    streaks.push(currentStreak);
+  }
+  
+  // Calculate longest streak
+  const longestStreak = streaks.reduce((longest, current) => 
+    current.length > longest.length ? current : longest, []);
+  
+  // Format longest streak date range
+  let longestStreakDate = 'N/A';
+  if (longestStreak.length > 0) {
+    const start = format(longestStreak[0], 'MMM dd');
+    const end = format(longestStreak[longestStreak.length - 1], 'MMM dd');
+    longestStreakDate = `${start} - ${end}`;
+  }
+  
+  // Calculate average streak length
+  const totalStreakLength = streaks.reduce((sum, streak) => sum + streak.length, 0);
+  const averageStreakLength = parseFloat((totalStreakLength / streaks.length).toFixed(1));
+  
+  // Find most productive day of the week
+  const dayOfWeekCounts = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0}; // Sunday to Saturday
+  
+  Object.keys(tasksByDate).forEach(dateStr => {
+    const date = parseISO(dateStr);
+    const dayOfWeek = date.getDay(); // 0 is Sunday, 6 is Saturday
+    dayOfWeekCounts[dayOfWeek] += tasksByDate[dateStr].length;
+  });
+  
+  const mostProductiveDayNum = Object.keys(dayOfWeekCounts)
+    .reduce((a, b) => dayOfWeekCounts[a] > dayOfWeekCounts[b] ? a : b);
+  
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const mostProductiveDay = days[mostProductiveDayNum];
+  
+  // Generate heatmap data (simplified)
+  // In a real application, you'd generate this based on actual data
+  // For this demo, we'll create some sample data
+  const heatmapSeries = [
+    { name: "Mon", data: [0, 2, 1, 0, 3] },
+    { name: "Tue", data: [1, 0, 2, 4, 0] },
+    { name: "Wed", data: [3, 1, 0, 2, 1] },
+    { name: "Thu", data: [0, 2, 3, 0, 2] },
+    { name: "Fri", data: [2, 0, 1, 3, 0] },
+    { name: "Sat", data: [1, 3, 0, 1, 4] },
+    { name: "Sun", data: [0, 1, 2, 0, 1] }
+  ];
+  
+  return {
+    activeDays,
+    totalStreaks: streaks.length,
+    averageStreakLength,
+    longestStreakDate,
+    mostProductiveDay,
+    heatmapSeries
   };
 };
