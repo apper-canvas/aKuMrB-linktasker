@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Link } from 'react-router-dom'
 import { Sun, Moon } from 'lucide-react'
 import { motion } from 'framer-motion'
 import Home from './pages/Home'
+import Privacy from './pages/Privacy'
+import Terms from './pages/Terms'
 import NotFound from './pages/NotFound'
 
 function App() {
@@ -25,14 +27,14 @@ function App() {
     <div className="min-h-screen bg-surface-50 dark:bg-surface-900 text-surface-800 dark:text-surface-100 transition-colors duration-300">
       <header className="sticky top-0 z-10 bg-white/80 dark:bg-surface-800/80 backdrop-blur-md border-b border-surface-200 dark:border-surface-700">
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-          <div className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold">
               LT
             </div>
             <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-secondary text-transparent bg-clip-text">
               LinkTasker
             </h1>
-          </div>
+          </Link>
           
           <motion.button
             whileTap={{ scale: 0.95 }}
@@ -48,13 +50,34 @@ function App() {
       <main className="container mx-auto px-4 py-6">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
 
       <footer className="border-t border-surface-200 dark:border-surface-700 py-6 mt-12">
-        <div className="container mx-auto px-4 text-center text-surface-500 dark:text-surface-400 text-sm">
-          <p>© {new Date().getFullYear()} LinkTasker. All rights reserved.</p>
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col items-center gap-4">
+            <div className="flex items-center gap-6 text-sm">
+              <Link 
+                to="/privacy" 
+                className="text-surface-600 dark:text-surface-400 hover:text-primary dark:hover:text-primary transition-colors"
+              >
+                Privacy Policy
+              </Link>
+              <span className="text-surface-300 dark:text-surface-600">•</span>
+              <Link 
+                to="/terms" 
+                className="text-surface-600 dark:text-surface-400 hover:text-primary dark:hover:text-primary transition-colors"
+              >
+                Terms of Service
+              </Link>
+            </div>
+            <p className="text-center text-surface-500 dark:text-surface-400 text-sm">
+              © {new Date().getFullYear()} LinkTasker. All rights reserved.
+            </p>
+          </div>
         </div>
       </footer>
     </div>
