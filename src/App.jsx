@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import Home from './pages/Home'
 import Privacy from './pages/Privacy'
 import Terms from './pages/Terms'
+import GDPR from './pages/GDPR'
 import NotFound from './pages/NotFound'
 
 function App() {
@@ -52,6 +53,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
+          <Route path="/gdpr" element={<GDPR />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
@@ -59,7 +61,7 @@ function App() {
       <footer className="border-t border-surface-200 dark:border-surface-700 py-6 mt-12">
         <div className="container mx-auto px-4">
           <div className="flex flex-col items-center gap-4">
-            <div className="flex items-center gap-6 text-sm">
+            <div className="flex items-center justify-center flex-wrap gap-4 text-sm">
               <Link 
                 to="/privacy" 
                 className="text-surface-600 dark:text-surface-400 hover:text-primary dark:hover:text-primary transition-colors"
@@ -72,6 +74,16 @@ function App() {
                 className="text-surface-600 dark:text-surface-400 hover:text-primary dark:hover:text-primary transition-colors"
               >
                 Terms of Service
+              </Link>
+              <span className="text-surface-300 dark:text-surface-600">•</span>
+              <Link 
+                to="/gdpr" 
+                className="text-surface-600 dark:text-surface-400 hover:text-primary dark:hover:text-primary transition-colors flex items-center gap-1"
+              >
+                <span className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-full font-medium">
+                  EU
+                </span>
+                GDPR Compliance
               </Link>
             </div>
             <p className="text-center text-surface-500 dark:text-surface-400 text-sm">
